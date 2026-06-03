@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: saffron-api
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: python main.py
+    healthCheckPath: /health
+    envVars:
+      - key: PORT
+        value: 10000
