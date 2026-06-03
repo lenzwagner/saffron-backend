@@ -21,6 +21,15 @@ L = Instaloader(
     quiet=True,
 )
 
+_ig_user = os.environ.get("IG_USERNAME")
+_ig_pass = os.environ.get("IG_PASSWORD")
+if _ig_user and _ig_pass:
+    try:
+        L.login(_ig_user, _ig_pass)
+        print(f"Logged in to Instagram as {_ig_user}")
+    except Exception as e:
+        print(f"Instagram login failed: {e}")
+
 # Simple in-memory cache: shortcode → (timestamp, result)
 _cache: dict[str, tuple[float, dict]] = {}
 CACHE_TTL = 3600  # 1 hour
