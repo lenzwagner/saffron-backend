@@ -51,9 +51,15 @@ def health():
 
 
 @app.get("/instagram/{shortcode}")
-def get_instagram_post(shortcode: str):
-    # Return cached result if still fresh
-    cached = _cache.get(shortcode)
+def get_instagram_post(shortcode: str, session_id: str = ""):
+    # Use per-request session ID if provided (overrides the env-var one)
+    effective_session = session_id.strip() or _ig_session or ""
+    if effective_session:
+        L.context._session.cookies.set("sessionid", effective_session, domain=".instagram.com")
+
+    # Return cached result if still fresh (only when using the same session)
+    cache_key = f"{shortcode}:{effective_session[:8] if effective_session else ''}"
+    cached = _cache.get(cache_key)
     if cached and (time.time() - cached[0]) < CACHE_TTL:
         return cached[1]
 
@@ -63,7 +69,7 @@ def get_instagram_post(shortcode: str):
             "caption": post.caption or "",
             "thumbnail_url": post.url or "",
         }
-        _cache[shortcode] = (time.time(), result)
+        _cache[cache_key] = (time.time(), result)
         return result
     except insta_exceptions.LoginRequiredException:
         raise HTTPException(status_code=403, detail="Post requires login (private or age-restricted)")
