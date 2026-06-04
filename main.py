@@ -21,12 +21,22 @@ L = Instaloader(
     quiet=True,
 )
 
-_ig_user = os.environ.get("IG_USERNAME")
-_ig_pass = os.environ.get("IG_PASSWORD")
-if _ig_user and _ig_pass:
+# Option 1: Session cookie (recommended — works from any IP including datacenter)
+_ig_session = os.environ.get("IG_SESSION_ID")
+if _ig_session:
     try:
-        L.login(_ig_user, _ig_pass)
-        print(f"Logged in to Instagram as {_ig_user}")
+        import requests
+        L.context._session.cookies.set("sessionid", _ig_session, domain=".instagram.com")
+        L.context._session.cookies.set("ds_user_id", os.environ.get("IG_USER_ID", ""), domain=".instagram.com")
+        print("Instagram session cookie loaded")
+    except Exception as e:
+        print(f"Session cookie setup failed: {e}")
+
+# Option 2: Username/password fallback
+elif os.environ.get("IG_USERNAME") and os.environ.get("IG_PASSWORD"):
+    try:
+        L.login(os.environ["IG_USERNAME"], os.environ["IG_PASSWORD"])
+        print(f"Logged in to Instagram as {os.environ['IG_USERNAME']}")
     except Exception as e:
         print(f"Instagram login failed: {e}")
 
